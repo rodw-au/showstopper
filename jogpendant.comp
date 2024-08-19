@@ -1,0 +1,77 @@
+component jogpendant "high and low speed jogging of pendant";
+pin in bit rapid_jog_btn;
+pin in bit plus_jog_btn;
+pin in bit minus_jog_btn;
+pin in bit yellow_jog_btn;
+pin in unsigned axis_to_jog;
+pin in float jog_vel_x_low;
+pin in float jog_vel_x_high;
+pin in float jog_vel_y_low;
+pin in float jog_vel_y_high;
+pin in float jog_vel_z_low;
+pin in float jog_vel_z_high;
+pin in float jog_vel_a_low  = 0;
+pin in float jog_vel_a_high = 0;
+pin out float c;
+
+pin out float jog_vel;
+
+license "GPL";
+author "Rod Webster";
+;;
+FUNCTION(_)
+
+{
+unsigned jogaxis = 0;
+  if(yellow_jog_btn){   // deadman switch is on
+    if(rapid_jog_btn){  // rapid jogging
+      switch(axis_to_jog){
+        case 0: // X axis
+          jog_vel = jog_vel_x_high;
+          jogaxis = 0;
+          break;
+        case 1: // Y axis
+          jog_vel = jog_vel_y_high;
+          jogaxis = 1;
+          break;
+        case 2: // Z axis
+          jog_vel = jog_vel_z_high;
+          jogaxis = 2;
+          break;
+        case 3: // A axis
+          if(jog_vel_a_low && jog_vel_a_high){  // We have an A axis
+            jog_vel = jog_vel_a_high;
+            jogaxis = 4;
+          }
+          break;
+        default:
+          break;
+      }
+    }
+    else{  // Normal jog speed
+      switch(axis_to_jog){
+        case 0: // X axis
+          jog_vel = jog_vel_x_low;
+          jogaxis = 0;
+          break;
+        case 1: // Y axis
+          jog_vel = jog_vel_y_low;
+          jogaxis = 1;
+          break;
+        case 2: // Z axis
+          jog_vel = jog_vel_z_low;
+          jogaxis = 2;
+          break;
+        case 3: // A axis
+          if(jog_vel_a_low && jog_vel_a_high){  // We have an A axis
+            jog_vel = jog_vel_a_low;
+            jogaxis = 3;
+          }
+          break;
+        default:
+          break;
+      }
+    }
+  }
+
+}

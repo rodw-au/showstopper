@@ -1,0 +1,163 @@
+# Pendant.hal - Config for XHC 433 mHz wireless pendant
+loadrt mux4 count=2
+loadrt mux8 count=1
+loadrt select8 count=1
+loadrt conv_float_s32 names=pen-conv-float
+loadrt conv_s32_bit names=pen-conv-s32
+loadrt ilowpass count=1
+loadrt mux_generic config="ff4,ff2","ff2"
+loadrt pendantjog names=mypendant
+
+addf mypendant                 servo-thread
+addf mux4.0                    servo-thread
+addf mux4.1                    servo-thread
+addf mux8.0                    servo-thread
+addf select8.0                 servo-thread
+addf pen-conv-float            servo-thread
+addf pen-conv-s32              servo-thread
+addf ilowpass.0                servo-thread
+addf mux-gen.00                servo-thread
+addf mux-gen.01                servo-thread
+addf mux-gen.02                servo-thread
+
+# --- PENDANT SELECT JOG MODE (Yellow Button) ---
+net pendant-jog <=  hm2_7i76e.0.7i76.0.0.input-18
+net pendant-jog => halui.mode.teleop 
+net pendant-jog => mypendant.yellow-jog-btn
+
+# --- PENDANT JOG SPEED (Greeen ~ Button) ---
+net pen-jog-speed <= hm2_7i76e.0.7i76.0.0.input-03
+net pen-jog-speed  => mypendant.rapid-jog-btn
+
+# --- PENDANT JOG UP (Greeen + Button) ---
+net pen-jog-up <= hm2_7i76e.0.7i76.0.0.input-02
+net pen-jog-up => mypendant.plus-jog-btn
+net pen-jog-up => halui.axis.selected.plus
+ 
+# --- PENDANT JOG DOWN (Greeen - Button) ---
+net pen-jog-down <= hm2_7i76e.0.7i76.0.0.input-01
+net pen-jog-down => mypendant.minus-jog-btn
+net pen-jog-down => halui.axis.selected.minus
+# --- PENDANT RAPIDJOG SELECT (Greeen + Button and ~ and yellow) ---
+
+# --- PENDANT RAPIDJOG UP (Greeen + Button and ~ and yellow) ---
+
+
+#net rapid-plus-move => halui.axis.selected.plus
+
+# --- PENDANT JOG UP (Greeen + Button and yellow) ---
+
+
+# --- PENDANT RAPID JOG DOWN (Greeen - Button and ~ Button and Yellow) ---
+
+# --- MPG JOG WHEELS FOR X AND Y AXIS ---
+
+# ilowpass filter
+setp ilowpass.0.scale 1
+setp ilowpass.0.gain  0.01
+
+# Setup Jog Pendant on each axis
+setp axis.x.jog-vel-mode 0
+setp axis.y.jog-vel-mode 0
+setp axis.z.jog-vel-mode 0
+
+# Scale Select
+setp mux4.0.in0 0.0
+setp mux4.0.in1 1.0
+setp mux4.0.in2 0.01
+setp mux4.0.in3 0.1
+
+#Axis Select (0=off, 1=x, 2=z, 3=y, na, 5=6, 6=4, 7=5) 
+setp mux8.0.in0 0
+setp mux8.0.in1 1
+setp mux8.0.in2 2
+setp mux8.0.in3 3
+setp mux8.0.in4 4
+setp mux8.0.in5 5
+setp mux8.0.in6 6
+setp mux8.0.in7 7
+net mux8-sel0 <= hm2_7i76e.0.7i76.0.0.input-13
+net mux8-sel1 <= hm2_7i76e.0.7i76.0.0.input-14
+net mux8-sel2 <= hm2_7i76e.0.7i76.0.0.input-15
+net mux8-sel0 => mux8.0.sel0 => mypendant.sel0
+net mux8-sel1 => mux8.0.sel1 => mypendant.sel1
+net mux8-sel2 => mux8.0.sel2 => mypendant.sel2
+
+setp pen-conv-float.clamp 0
+net mux-float <= mux8.0.out
+net mux-float => pen-conv-float.in
+
+net mux-s32   <= pen-conv-float.out
+net mux-s32   => select8.0.sel
+net axis-select-x <= select8.0.out1
+net axis-select-y <= select8.0.out3
+net axis-select-z <= select8.0.out2
+net axis-select-a <= select8.0.out6
+net axis-select-5 <= select8.0.out7
+net axis-select-6 <= select8.0.out5
+
+net axis-select-x => axis.x.jog-enable
+net axis-select-x => halui.axis.x.select
+
+net axis-select-y => axis.y.jog-enable
+net axis-select-y => halui.axis.y.select
+
+net axis-select-z => axis.z.jog-enable
+net axis-select-z => halui.axis.z.select
+
+net axis-select-a => axis.a.jog-enable 
+net axis-select-a => halui.axis.a.select
+
+net axis-select-5 => halui.feed-override.count-enable 
+net axis-select-6 => halui.rapid-override.count-enable 
+
+# Encoder counts
+net jog-counter <=  hm2_7i76e.0.7i76.0.0.enc0.count
+net jog-counter => ilowpass.0.in
+net smooth-counter <= ilowpass.0.out
+net smooth-counter => axis.x.jog-counts
+net smooth-counter => axis.y.jog-counts
+net smooth-counter => axis.z.jog-counts
+net smooth-counter => axis.a.jog-counts
+net smooth-counter => halui.feed-override.counts
+net smooth-counter => halui.rapid-override.counts
+
+net mux4-sel1 <= hm2_7i76e.0.7i76.0.0.input-11
+net mux4-sel0 <= hm2_7i76e.0.7i76.0.0.input-12
+net mux4-sel1 => mux4.0.sel1
+net mux4-sel0 => mux4.0.sel0
+
+
+net jog-scale <= mux4.0.out
+net jog-scale => axis.x.jog-scale
+net jog-scale => axis.y.jog-scale
+net jog-scale => axis.z.jog-scale
+net jog-scale => axis.a.jog-scale
+net jog-scale => halui.feed-override.scale
+
+# Rapid Speed Select for each axis
+setp mux-gen.00.in-float-00 [AXIS_X]MAX_VELOCITY
+setp mux-gen.00.in-float-01 [AXIS_Y]MAX_VELOCITY
+setp mux-gen.00.in-float-02 [AXIS_Z]MAX_VELOCITY
+#setp mux-gen.00.in-float-03 [AXIS_A]MAX_ANGULAR_VELOCITY
+#net axis-vel-select mux-gen.00.sel-int <= halui.axis.selected
+net axis-rapid-vel <= mux-gen.00.out-float
+
+# Select Rapid or jog speed
+
+net axis-rapid-vel => mux-gen.01.in-float-01
+setp  mux-gen.01.in-float-00 [DISPLAY]DEFAULT_LINEAR_VELOCITY
+net pendant-jog    => mux-gen.01.sel-bit-00
+#net  jog-spd  mux-gen.01.out-float => halui.axis.jog-speed
+
+net pen-jog-vel mypendant.jog-vel => halui.axis.jog-speed
+#net selected-axis <= mypendant.axis-to-jog  <= halui.axis.selected
+#setp mypendant.jog-vel-a-high [AXIS_A]MAX_ANGULAR_VELOCITY	
+setp mypendant.jog-vel-a-low  [DISPLAY]DEFAULT_ANGULAR_VELOCITY
+
+setp mypendant.jog-vel-x-high [AXIS_X]MAX_VELOCITY
+setp mypendant.jog-vel-x-low   [DISPLAY]DEFAULT_LINEAR_VELOCITY
+setp mypendant.jog-vel-y-high [AXIS_Y]MAX_VELOCITY
+setp mypendant.jog-vel-y-low   [DISPLAY]DEFAULT_LINEAR_VELOCITY
+setp mypendant.jog-vel-z-high  [AXIS_Z]MAX_VELOCITY
+setp mypendant.jog-vel-z-low   [DISPLAY]DEFAULT_LINEAR_VELOCITY

@@ -1,0 +1,96 @@
+component pendantjog "high and low speed jogging of pendant";
+description
+"""
+Pendant decoding of XHC ATWGP pendant.
+""";
+author "Rod Webster";
+
+pin in bit rapid_jog_btn;
+pin in bit plus_jog_btn;
+pin in bit minus_jog_btn;
+pin in bit yellow_jog_btn;
+pin in bit sel0 "Bit 0 select";
+pin in bit sel1 "Bit 1 select";
+pin in bit sel2 "Bit 2 select";
+pin out u32 axis_to_jog "axis to jog";
+pin in float jog_vel_x_low  "X low speed jog";
+pin in float jog_vel_x_high "X high speed jog";
+pin in float jog_vel_y_low  "Y low speed jog";
+pin in float jog_vel_y_high "Y high speed jog"; 
+pin in float jog_vel_z_low  "Z low speed jog";
+pin in float jog_vel_z_high "Z high speed jog";
+pin in float jog_vel_a_low  = 0  "A low speed jog";
+pin in float jog_vel_a_high = 0 "A high speed jog";
+pin out float jog_vel "Jog velocity output";
+pin out u32 axis_sel_dbg "Debug";
+author "Rod Webster";
+
+function _;
+license "GPL";
+;;
+FUNCTION(_)
+{
+  int axisSelect = (((unsigned)sel2 << 2) | ((unsigned) sel1 << 1) | ((unsigned) sel0));
+  axis_sel_dbg = axisSelect;
+  if(yellow_jog_btn){   // deadman switch is on
+    if(rapid_jog_btn){  // rapid jogging
+      switch(axisSelect){
+        case 1: // X axis
+          jog_vel = jog_vel_x_high;
+          axis_to_jog = 0;
+          break;
+        case 3: // Y axis
+          jog_vel = jog_vel_y_high;
+          axis_to_jog = 1;
+          break;
+        case 2: // Z axis
+          jog_vel = jog_vel_z_high;
+          axis_to_jog = 2;
+          break;
+        case 6: // A axis
+          axis_to_jog = 4;
+            jog_vel = jog_vel_a_high;
+        case 5: // Feed Override
+			axis_to_jog = 5;
+			break;
+        case 7: // Rapid Override
+			axis_to_jog = 6;
+			break;
+        default:
+          break;
+      }
+    }
+    else{  // Normal jog speed
+      switch(axisSelect){
+        case 1: // X axis
+          jog_vel = jog_vel_x_low;
+          axis_to_jog = 0;
+          break;
+        case 3: // Y axis
+          jog_vel = jog_vel_y_low;
+          axis_to_jog = 1;
+          break;
+        case 2: // Z axis
+          jog_vel = jog_vel_z_low;
+          axis_to_jog = 2;
+          break;
+        case 6: // A axis
+          jog_vel = jog_vel_a_low;
+          axis_to_jog = 3;
+          break;
+       case 5: // Feed Override
+       	  axis_to_jog = 5;
+		  break;
+       case 7: // Feed Override
+       	  axis_to_jog = 6;
+		  break;
+        default:
+		  break;
+      }
+    }
+  }
+  else{
+	// Only jog if yellow button is pressed
+	jog_vel = 0.0;
+  }
+}

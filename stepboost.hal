@@ -1,0 +1,19 @@
+# --- STEPBOOST - Enable boost signals to the Lam drivers -----
+loadrt stepboost count=5
+addf stepboost.0 servo-thread
+addf stepboost.1 servo-thread
+addf stepboost.2 servo-thread
+addf stepboost.3 servo-thread
+addf stepboost.4 servo-thread
+
+net boost:0 joint.0.acc-cmd => stepboost.0.joint-vel
+net boost:1 joint.1.acc-cmd => stepboost.1.joint-vel
+net boost:2 joint.2.acc-cmd => stepboost.2.joint-vel
+net boost:3 joint.3.acc-cmd => stepboost.3.joint-vel
+net boost:4 joint.4.acc-cmd => stepboost.4.joint-vel
+
+net drive:0 stepboost.0.boost => hm2_7i76e.0.7i76.0.0.output-01
+net drive:1 stepboost.1.boost => hm2_7i76e.0.7i76.0.0.output-02
+net drive:2 stepboost.2.boost => hm2_7i76e.0.7i76.0.0.output-03
+net drive:3 stepboost.3.boost => hm2_7i76e.0.7i76.0.0.output-04
+net drive:4 stepboost.4.boost => hm2_7i76e.0.7i76.0.0.output-05

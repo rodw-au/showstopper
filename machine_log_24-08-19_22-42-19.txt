@@ -1,0 +1,5 @@
+--- QtVCP Screen Started on: Mon, Aug 19 2024 20:24:50 ---
+--- my_Plasma - QtPlasmaC v2.9-236.301, powered by QtVCP and LinuxCNC ---
+Mon19 20:24: Tool 0: No Tool
+Mon19 21:10: Emergency stop pressed
+Mon19 21:24: hm2/hm2_7i76e.0: error finishing read! iter=3570414

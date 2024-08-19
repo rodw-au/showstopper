@@ -1,0 +1,29 @@
+--- QtVCP Screen Started on: Sun, Aug 18 2024 16:23:04 ---
+--- my_Plasma - QtPlasmaC v2.9-236.301, powered by QtVCP and LinuxCNC ---
+Sun18 16:23: Tool 0: No Tool
+Sun18 16:23: GUI power on
+Sun18 16:23: Machine homed
+Sun18 16:23: Tool 0: torch
+Sun18 16:25: Loaded: /home/debian/linuxcnc/nc_files/10mm cleats.ngc
+Sun18 16:26: Cycle started - Torch disabled
+Sun18 16:26: Cycle paused
+Sun18 16:26: float switch detected before probing.
+program is paused.
+Sun18 16:26: float switch detected before probing.
+program is paused.
+Sun18 16:26: float switch detected before probing.
+program is paused.
+Sun18 16:26: Cycle aborted
+Sun18 16:26: Machine idle
+Sun18 16:26: Cycle started - Torch disabled
+Sun18 16:26: Cycle aborted
+Sun18 16:26: Machine idle
+Sun18 16:27: Cycle started - Torch disabled
+Sun18 16:27: float switch detected before probing.
+program is paused.
+Sun18 16:27: Cycle aborted
+Sun18 16:27: Machine idle
+Sun18 16:28: Probe test started
+Sun18 16:28: Probe test aborted
+Sun18 16:28: GUI power off
+Sun18 16:28: GUI power on

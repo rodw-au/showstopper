@@ -1,0 +1,52 @@
+component stepboost "LinuxCNC HAL component to enable boost on LAM Technologies Stepper Drivers";
+
+description
+"""
+boost pin will go true if velocity is constant
+If invert is true, the boost pin will be inverted (false if velocity is constant)
+
+\\fBEXAMPLE:\\fR
+.br
+loadrt stepboost count=3
+.br
+addf stepboost.0 servo-thread
+.br
+addf stepboost.1 servo-thread
+.br
+addf stepboost.2 servo-thread
+.br
+.br
+net boost:0 joint.0.acc-cmd => stepboost.0.joint-vel
+.br
+net boost:1 joint.1.acc-cmd => stepboost.1.joint-vel
+.br
+net boost:2 joint.2.acc-cmd => stepboost.2.joint-vel
+.br
+.br
+net drive:0 stepboost.0.boost => hm2_7i76e.0.7i76.0.0.output-01
+.br
+net drive:1 stepboost.1.boost => hm2_7i76e.0.7i76.0.0.output-02
+.br
+net drive:2 stepboost.2.boost => hm2_7i76e.0.7i76.0.0.output-03
+""";
+
+author "Rod Webster";
+
+pin in  float joint_vel            "Joint velocity (attach to joint.N.joint−vel−cmd)";
+pin in  bit invert = 0             "Invert state of output pin if true";
+pin out bit boost                  "turns True if velocity is constant";
+
+function _;
+license "GPL";
+;;
+FUNCTION(_) {
+    static double last_vel = 0.0;
+	int tboost;
+	
+	tboost = (joint_vel == last_vel) ? 1:0;
+	if(invert){
+		tboost != tboost;
+	}
+	boost = tboost; 
+	last_vel = joint_vel;
+}

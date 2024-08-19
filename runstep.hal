@@ -1,0 +1,53 @@
+# Pause/Resume Run/Step buttons
+loadrt and2        names=pr-and0,pr-and1,pr-and2,pr-and3,pr-and4 
+loadrt or2         names=pr-or0,pr-or1,pr-or2,pr-or3,pr-or4
+loadrt toggle      names=pr-toggle0
+loadrt toggle2nist names=pr-toggle2nist0
+
+addf pr-and0 servo-thread
+addf pr-and1 servo-thread
+addf pr-and2 servo-thread
+addf pr-and3 servo-thread
+addf pr-or0  servo-thread
+addf pr-or1  servo-thread 
+addf pr-or2  servo-thread 
+addf pr-or3  servo-thread 
+addf pr-or4  servo-thread 
+addf pr-toggle0 servo-thread
+addf pr-toggle2nist0 servo-thread
+
+# External Program Pause/Resume and Run/Step Buttons
+# Pause/Resume Section
+unlinkp halui.program.is-paused
+unlinkp halui.program.is-running
+net plasmac:program-is-paused => pr-or2.in0
+net ispaused halui.program.is-paused => pr-or2.in1
+net plasmac:program-is-running => pr-or3.in0
+net is_running halui.program.is-running => pr-or3.in1
+net pause-resume-btn qtplasmac.ext_pause <= hm2_7i76e.0.7i76.0.0.input-19
+net pause-on pr-toggle2nist0.is-on pr-and0.in1 <= pr-or2.out
+net run-on pr-and1.in1 <= pr-or3.out
+net pause-sig pr-or0.in0 <= pr-and0.out
+net resume-sig pr-or0.in1 <= pr-and1.out
+net toggle-ok pr-toggle0.in <= pr-or0.out
+net togglesig pr-toggle2nist0.in <= pr-toggle0.out
+#net toggleon qtplasmac.ext_pause <= pr-toggle2nist0.on
+unlinkp halui.program.resume
+net plasmac:program-pause => pr-or1.in0
+net res-btn pr-or1.in1 <= pr-toggle2nist0.off
+net toggleoff halui.program.resume <= pr-or1.out
+
+# Run/Step Section
+unlinkp halui.program.is-idle
+net plasmac:program-is-idle => pr-or4.in0
+net is-idle halui.program.is-idle => pr-or4.in1
+net run-step-btn pr-and2.in0 pr-and3.in0 <= hm2_7i76e.0.7i76.0.0.input-00
+net idle-on pr-and2.in1 <= pr-or4.out
+
+net ispaused => pr-and3.in1 
+# pr-and3.in1 was added in the net pause-on statement in Pause/Resume Section
+net run-sig <= pr-and2.out
+net run-sig => halui.mode.auto 
+net run-sig => qtplasmac.ext_run 
+#net run-step-btn <= pr-and3.in0
+net run-step pr-and3.out => halui.program.step 

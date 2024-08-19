@@ -1,0 +1,186 @@
+component ohmic3 "LinuxCNC HAL component that uses a Mesa THCAD for Ohmic sensing";
+
+description
+"""
+Mesa THCAD Card component to scale input and outputs from the Mesa THCAD5, THCAD10 and THCAD300 cards.
+It is designed to allow user configurable voltage threshold for ohmic sensing and improve seinsing on water tables where water can enter the torch nozzle and short out the circuit.
+.br
+Output pins are provided for:
+.br
+ohmic-volts (the voltage sensed on ohmic sensing)
+.br
+ohmic-on (true if ohmic-volts >= ohmic-threshold)
+.br
+arc-on (true if arc voltage is received eg. full scale reached or exceeded)
+.br
+Designed to be used with a THCAD-5 for ohmic sensing in conjunction with a 24 volt isolated power supply (Meanwell HDR-15-24 or eqivalent)and a 390K resistor.
+This would result in a full scale reading of 24.5 volts which is above the power supply output voltage.
+So if full scale is reached, it can be assumed that the THCAD-5 is sensing an arc voltage.
+In this case, the circuit will remain protected by the THCAD's ability to tolerate a 500V overvoltage indefinitely.
+It is recommended that power to the Ohmic sensing circuit be disconnected unless probing is in progress to prevent corrosion in consmables where a water table is in use.
+.br
+It is also recommended to fit a 24k 5W pull up resistor on water tables to increase ohmic sensitivity when the torch is wet.
+.br
+
+
+\\fBEXAMPLE:\\fR
+.br
+THCAD5 card using a 1/32 frequency setting and a voltage divider internal to the plasma cutter with range extended
+to 24.5 volts with a 390K external resistor as per the THCAD manual. Additional information and wiring diagram is contained in the Plasma Primer in the main Linuxcnc documents.
+
+.br
+ 
+.br
+loadrt ohmic names=ohmicsense
+.br
+addf ohmicsense servo-thread
+.br
+.br
+setp ohmicsense.thcad-0-volt-freq    122900
+.br
+setp ohmicsense.thcad-max-volt-freq  925700
+.br
+setp ohmicsense.thcad-divide         32
+.br
+setp ohmicsense.thcad-fullscale      5
+.br
+setp ohmicsense.volt-divider         32
+.br
+setp ohmicsense.threshold            18
+.br
+setp ohmicsense.ohmic-low            5
+.br
+net ohmic-vel ohmicsense.velocity-in <= hm2_7i76e.0.encoder.00.velocity
+.br
+net ohmic-true ohmicsense.ohmic-on => plasmac.ohmic-probe
+""";
+
+
+author "Rod Webster";
+
+// Example Calibration Data: 0v = 122.9 kHz, 10v = 925.7 Khz should be entered as 122900 and 925700
+pin in  float thcad_0_volt_freq          "0 volt calibration data for THCAD card in Hz";
+pin in  float thcad_max_volt_freq        "Full scale calibration data for THCAD Card in Hz";
+pin in  float thcad_divide = 32          "THCAD Divider set by links on THCAD board (1,32,64 or 128";
+pin in  float thcad_fullscale = 5        "THCAD Fullscale (5, 10 or 300)";
+pin in  float velocity_in                "The velocity returned from the THCAD and read by the Mesa encoder input";
+pin in  float volt_divider = 4.9         "The divide ratio";
+pin in  float ohmic_threshold = 18       "The threshold  volts above which Ohmic sensing is set to be true";
+pin in  float ohmic_low = 5              "The threshold  volts below which Ohmic sensing is set to be false";
+pin out  bit arc_on                      "True if full scale (eg arc is on)";
+pin out float thcad_volts                "Measured thcad voltage";
+pin out float ohmic_volts                "Calculated Ohmic  voltage";
+pin out bit   ohmic_on                   "True if ohmic circuit is closed (eg. Torch is touching material)";
+pin in  bit  is_probing                  "True if probing";
+pin in  s32 motion_type_in               "Connect motion.motion-type here";
+pin out bit power_on                     "Turn relay on with this pin";
+pin in  s32 mode = 0                      "0 = use low threshold, 1 = use trend";
+pin in  s32 num_readings = 5              "number of servo cycles to stay on trend";
+pin out float dbg_avgv                   "average ohmic volts";
+function _;
+license "GPL";
+;;
+#include <rtapi_math.h>
+#define BUFSIZE 1000 // maximum number of readings to average torch volts
+float avgarcvolts(double tvolts, int iscutting, int buffersize);
+
+static int cycles = 0;
+
+double buf[BUFSIZE];
+int reading_count;
+
+float avgarcvolts(double tvolts, int iscutting, int buffersize)
+{
+	// Calculates the moving average of buffersize readings
+	
+	static double *b = &buf[0], *p = &buf[0];		// pointers for beginning of buffer and current position
+	static double *e;   // pointer for end of buffer
+	static int   wascutting = 0;		// cutting state last time
+    static double sumvolts = 0.0;		// Sum of readings in buffer
+    static int numreadings = 0;			// number of readings in buffer
+    e =  &buf[buffersize];              // Initialise end pointer
+	if(!iscutting && wascutting){
+		// Torch just turned off, so reset the variables
+		p = b;
+		sumvolts = 0.0;
+		numreadings = 0;
+		wascutting = iscutting; 		//and save the state
+		return(0.0);
+	}
+	if(iscutting){						// Arc_OK is on so lets start gathering data to average
+		*p++ = tvolts;					// Save volts to the buffer and increment pointer
+		if(numreadings < buffersize)
+			numreadings++;
+		if(p > e)						// if we've gone past the end of the buffer, wrap to the beginning
+			p = b;
+		sumvolts += tvolts;				// add the new reading
+		if(numreadings >= buffersize)
+			sumvolts -= *p;				// subtract the oldest reading (which is the one we are pointing at now)
+	}
+	wascutting = iscutting; 			//and save the state
+	if(numreadings)					
+		return(sumvolts/(double)numreadings);  // return Average volts
+	else
+		return (0.0);					// catch divide by zero errors
+}
+
+FUNCTION(_) {
+      double thcad_vel_scale = 1/((thcad_max_volt_freq - thcad_0_volt_freq)/thcad_fullscale/thcad_divide);
+      double thcad_scale_offset = thcad_0_volt_freq/thcad_divide;
+      double avgvolts = 0.0;		// average volts
+      thcad_volts = (velocity_in - thcad_scale_offset) * thcad_vel_scale;
+      ohmic_volts = (float)((float)thcad_volts * (float)volt_divider); // Calculated torch volts from THCAD
+      static int first_pass = 0;
+      
+   	  if(num_readings > 1000)	    //enforce number of readings limits
+        reading_count = 1000;
+      else 
+        if(num_readings < 3)
+          reading_count = 3;
+      else
+        reading_count = num_readings;
+      if(is_probing){
+        if(!first_pass){
+                first_pass = 1;
+                if(! power_on)
+                    power_on = 1;
+        }
+      }
+      power_on = !motion_type_in ? 0 : 1;
+      avgvolts =	avgarcvolts(ohmic_volts, (int)1, (int)reading_count);
+      
+      switch(mode){
+        case 0:
+          if(is_probing)
+            ohmic_on    = (ohmic_volts >  (ohmic_threshold && is_probing) ? 1 : 0);
+          else 
+            if( ohmic_volts < ohmic_low)
+                ohmic_on = 0;
+          break;
+        case 1:
+          if(is_probing){
+            dbg_avgv = avgvolts;
+            if(!ohmic_on){
+              if(ohmic_volts > ohmic_threshold){
+                ohmic_on = 1;
+              }
+            }
+            else{
+              if(avgvolts < ohmic_threshold || ohmic_volts < ohmic_low){
+                ohmic_on = 0;
+                first_pass = 0;
+              }              
+            }
+          }          
+          else{
+            ohmic_on = 0;
+          }
+          break;
+        default:
+          // Report error invalid mode
+          break;
+      }      
+      arc_on      = (thcad_volts >= thcad_fullscale ? 1 : 0);
+      if(!is_probing)
+        first_pass = 0;
+}

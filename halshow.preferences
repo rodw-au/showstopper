@@ -1,0 +1,38 @@
+# Halshow settings
+# This file is generated automatically.
+wm geometry . 656x475+987+119
+placeFrames 0.4440993788819876
+set ::ratio 0.4440993788819876
+set ::old_w_leftf 160
+set ::watchlist {
+    pin+joint.0.home-sw-in
+    pin+joint.1.home-sw-in
+    pin+joint.2.home-sw-in
+    pin+joint.3.home-sw-in
+    pin+joint.1.neg-lim-sw-in
+    pin+joint.1.pos-lim-sw-in
+    pin+joint.2.neg-lim-sw-in
+    pin+joint.2.pos-lim-sw-in
+    pin+plasmac.float-switch
+    pin+joint.0.pos-lim-sw-in
+    pin+joint.0.pos-hard-limit
+    pin+joint.0.neg-lim-sw-in
+    pin+db_breakaway.in
+    pin+db_ohmic.in
+    pin+ohmicsense.ohmic-on
+    pin+ohmicsense.ohmic-volts
+    pin+ohmicsense.motion-type-in
+    pin+ohmicsense.power-on
+    pin+hm2_7i76e.0.7i76.0.0.spinena
+    pin+hm2_7i76e.0.7i76.0.0.input-21
+    pin+hm2_7i76e.0.7i76.0.0.input-30
+    pin+hm2_7i76e.0.7i76.0.0.input-10
+    pin+hm2_7i76e.0.7i76.0.0.input-31
+}
+set ::workmode watchhal
+set ::watchInterval 100
+set ::col1_width 100
+set ::ffmts 
+set ::ifmts 
+set ::alwaysOnTop 0
+set ::autoSaveWatchlist 1

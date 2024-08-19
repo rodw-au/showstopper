@@ -1,0 +1,18 @@
+--- QtVCP Screen Started on: Sun, Aug 18 2024 14:08:04 ---
+--- my_Plasma - QtPlasmaC v2.9-236.301, powered by QtVCP and LinuxCNC ---
+Sun18 14:08: Tool 0: No Tool
+Sun18 14:08: GUI power on
+Sun18 14:08: Machine homed
+Sun18 14:08: Tool 0: torch
+Sun18 14:08: Float Switch has aborted active jogging
+Sun18 14:11: Probe test started
+Sun18 14:11: Probe test aborted
+Sun18 14:11: Probe test started
+Sun18 14:11: Probe test aborted
+Sun18 14:11: Probe test started
+Sun18 14:11: Probe test aborted
+Sun18 14:12: Probe test started
+Sun18 14:12: Probe test aborted
+Sun18 14:12: Probe test started
+Sun18 14:12: Probe test aborted
+Sun18 14:18: Float Switch has aborted active jogging
