@@ -12,7 +12,7 @@ loadrt hm2_eth board_ip="10.10.10.10" config="num_encoders=2 num_pwmgens=0 num_s
 #loadrt hm2_eth board_ip="10.10.10.10" config="num_encoders=2 num_pwmgens=0 num_stepgens=5 sserial_port_0=00xx" 
 setp    hm2_7i76e.0.watchdog.timeout_ns 5000000
 setp    hm2_7i76e.0.dpll.01.timer-us -100
-loadrt pid names=pid.0,pid.1,pid.2,pid.2,pid.2,pid.s
+loadrt pid names=pid.0,pid.1,pid.2,pid.3,pid.4,pid.s
 loadrt plasmac
 # ---PLASMA INPUT DEBOUNCE---
 #values for these are in custom.hal
