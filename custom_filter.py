@@ -16,7 +16,9 @@ These methods are applied by the following procedure:
 
 # for custom parsing before standard parsing
 # Suits Hypertherm Nestmaster
+incSet = False
 def custom_pre_parse(data):
+    global incSet
     if data[:3] in ['G20', 'G21']:
         return(f'{data}\nG90')
     elif data[:3] == 'M07':
@@ -25,6 +27,11 @@ def custom_pre_parse(data):
         return(f'M5 $0\n')
     elif data[:3] == 'M30':
         return(f'G90\n{data}')
+    elif data[:3] == 'G00' and not incSet:
+        incSet = True
+        return(f'G91\n{data}')
+    elif data[:3] == 'G91':
+        return None
     return(data)
 self.custom_pre_parse = custom_pre_parse
 
