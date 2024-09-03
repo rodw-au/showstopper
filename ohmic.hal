@@ -17,3 +17,4 @@ setp ohmicsense.mode                 1
 setp ohmicsense.num-readings         10
 net ohmic-vel ohmicsense.velocity-in <= hm2_7i76e.0.encoder.01.velocity
 net plasmac:motion-type => ohmicsense.motion-type-in 	
+net plasmac:ohmic-enable plasmac.ohmic-enable => ohmicsense.is-probing
