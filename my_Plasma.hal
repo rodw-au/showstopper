@@ -50,8 +50,7 @@ net plasmac:axis-position joint.3.pos-fb => plasmac.axis-z-position
 # --- PLASMAC:BREAKAWAY ---
 net plasmac:breakaway  <= hm2_7i76e.0.7i76.0.0.input-20
 net plasmac:breakaway  => db_breakaway.in
-#unlinkp plasmac.breakaway
-net breakaway => db_breakaway.out => plasmac.breakaway
+
 
 net plasmac:ohmic-probe      => db_ohmic.in
 net plasmac:ohmic-sense-in   => plasmac.ohmic-sense-in
@@ -85,6 +84,7 @@ setp hm2_7i76e.0.encoder.00.scale        -1
 net machine-is-enabled  =>     hm2_7i76e.0.7i76.0.0.output-00
 #net power-on <= motion.enable
 #net power-on => hm2_7i76e.0.7i76.0.0.output-00
+
 # --- PLASMAC:LASER-ON ---
 net plasmac:laser-on  =>     hm2_7i76e.0.7i76.0.0.output-06
 
@@ -146,8 +146,7 @@ net min-home-3  =>  joint.3.neg-lim-sw-in
 # --- PLASMAC:FLOAT-SWITCH ---
 net plasmac:float-switch     <=  hm2_7i76e.0.7i76.0.0.input-10
 net plasmac:float-switch => db_float.in
-#unlinkp plasmac.float-switch
-net float-switch  db_float.out => plasmac.float-switch
+
 
 # --- PLASMAC:OHMIC-SENSE-IN ---
 #moved to ohmic.hal
